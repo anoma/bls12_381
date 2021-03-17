@@ -407,6 +407,20 @@ impl G1Affine {
             .is_identity()
     }
 
+    /// Returns true if this point is on the g1 subgroup.
+    pub fn is_torsion_free_optimized(&self) -> Choice {
+        const BETA:Fp = Fp::from_raw_unchecked([0xcd03_c9e4_8671_f071,0x5dab_2246_1fcd_a5d2,0x5870_42af_d385_1b95,0x8eb6_0ebe_01ba_cb9e,0x03f9_7d6e_83d0_50d2,0x18f0_2065_5463_8741]);
+        // use the S. Bowe trick from eprint 2020/499
+        let mut sigma = G1Projective::from(*self);
+        sigma.x = sigma.x * BETA;
+        let mut sigma2 = sigma;
+        sigma2.x = sigma2.x * BETA;
+        sigma = sigma.double() - G1Projective::from(*self) - sigma2;
+        let l = Scalar::from_raw([0x0000_0000_5555_5555,0x396c_8c00_5555_e156,0x0000_0000_0000_0000,0x0000_0000_0000_0000]);
+        sigma = sigma * l - sigma2;
+        sigma.is_identity()
+    }
+
     /// Returns true if this point is on the curve. This should always return
     /// true unless an "unchecked" API was used.
     pub fn is_on_curve(&self) -> Choice {
@@ -1521,10 +1535,35 @@ fn test_is_torsion_free() {
         infinity: Choice::from(0u8),
     };
     assert!(!bool::from(a.is_torsion_free()));
-
     assert!(bool::from(G1Affine::identity().is_torsion_free()));
     assert!(bool::from(G1Affine::generator().is_torsion_free()));
 }
+
+#[test]
+fn test_is_torsion_free_optimized() {
+    let a = G1Affine {
+        x: Fp::from_raw_unchecked([
+            0x0aba_f895_b97e_43c8,
+            0xba4c_6432_eb9b_61b0,
+            0x1250_6f52_adfe_307f,
+            0x7502_8c34_3933_6b72,
+            0x8474_4f05_b8e9_bd71,
+            0x113d_554f_b095_54f7,
+        ]),
+        y: Fp::from_raw_unchecked([
+            0x73e9_0e88_f5cf_01c0,
+            0x3700_7b65_dd31_97e2,
+            0x5cf9_a199_2f0d_7c78,
+            0x4f83_c10b_9eb3_330d,
+            0xf6a6_3f6f_07f6_0961,
+            0x0c53_b5b9_7e63_4df3,
+        ]),
+        infinity: Choice::from(0u8),
+    };
+    assert!(!bool::from(a.is_torsion_free_optimized()));
+    assert!(bool::from(G1Affine::identity().is_torsion_free_optimized()));
+    assert!(bool::from(G1Affine::generator().is_torsion_free_optimized()));
+}    
 
 #[test]
 fn test_mul_by_x() {
