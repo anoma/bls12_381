@@ -1,8 +1,8 @@
-use bls12_381::{
+use hex_literal::hex;
+use nam_bls12_381::{
     hash_to_curve::{ExpandMsgXmd, HashToCurve},
     G1Affine, G1Projective,
 };
-use hex_literal::hex;
 use sha2::Sha256;
 
 struct TestCase {
