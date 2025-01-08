@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate criterion;
 
-extern crate bls12_381;
-use bls12_381::hash_to_curve::*;
-use bls12_381::*;
+extern crate nam_bls12_381;
+use nam_bls12_381::hash_to_curve::*;
+use nam_bls12_381::*;
 
 use criterion::{black_box, Criterion};
 
